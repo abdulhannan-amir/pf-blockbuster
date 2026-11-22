@@ -6,6 +6,8 @@ using namespace std;
 const int ROWS = 8;
 const int COLS = 10;
 int bricks[ROWS][COLS];
+const int Window_W = 600;
+const int Window_H = 700;
 
 const float Brick_W = 60.f;
 const float Brick_H = 25.f;
@@ -81,6 +83,11 @@ void handleInput(sf::RenderWindow& window) {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
 		PaddleX = PaddleX + 8;
 
+	if (PaddleX < 0)
+		PaddleX = 0;
+
+	if (PaddleX + (int)Paddle_W > Window_W)
+		PaddleX = Window_W - (int)Paddle_W;
 }
 
 void updateGame() {
@@ -98,7 +105,7 @@ void drawGame(sf::RenderWindow& window) {
 
 int main() {
 
-	sf::RenderWindow window(sf::VideoMode({ 600, 700 }), "Block Buster");
+	sf::RenderWindow window(sf::VideoMode({ Window_W, Window_H }), "Block Buster");
 	window.setFramerateLimit(60);
 
 	if (!loadLevel())
