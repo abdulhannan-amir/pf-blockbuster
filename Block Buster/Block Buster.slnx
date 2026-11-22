@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Block Buster/Block Buster.vcxproj" />
+  <Project Path="Block Buster/Block Buster.vcxproj" Id="5567ef18-1b21-4fae-8e25-a5bb0eac3194" />
 </Solution>

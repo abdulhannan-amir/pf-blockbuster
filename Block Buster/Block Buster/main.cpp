@@ -11,6 +11,11 @@ const float Brick_W = 60.f;
 const float Brick_H = 25.f;
 const float Brick_Y = 100.f;
 
+const float Paddle_W = 100.f;
+const float Paddle_H = 14.f;
+const float	Paddle_Y = 650.f;
+int  PaddleX = 250;
+
 bool loadLevel() {
 
 	ifstream fin("level.txt");
@@ -53,6 +58,14 @@ void drawBricks(sf::RenderWindow& window)
 	}
 }
 
+void drawPaddle(sf::RenderWindow& window) {
+
+	sf::RectangleShape paddle({ Paddle_W, Paddle_H });
+	paddle.setFillColor(sf::Color::White);
+	paddle.setPosition({(float)PaddleX, Paddle_Y});
+	window.draw(paddle);
+}
+
 
 void handleInput(sf::RenderWindow& window) {
 
@@ -62,6 +75,12 @@ void handleInput(sf::RenderWindow& window) {
 			window.close();
 		}
 	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+		PaddleX = PaddleX - 8;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+		PaddleX = PaddleX + 8;
+
 }
 
 void updateGame() {
@@ -73,6 +92,7 @@ void drawGame(sf::RenderWindow& window) {
 
 	window.clear();
 	drawBricks(window);
+	drawPaddle(window);
 	window.display();
 }
 
