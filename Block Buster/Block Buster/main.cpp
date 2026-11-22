@@ -1,11 +1,14 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
 const int ROWS = 8;
 const int COLS = 10;
 int bricks[ROWS][COLS];
+
 const int Window_W = 600;
 const int Window_H = 700;
 
@@ -17,6 +20,14 @@ const float Paddle_W = 100.f;
 const float Paddle_H = 14.f;
 const float	Paddle_Y = 650.f;
 int  PaddleX = 250;
+
+const float Ball_Size = 12.f;
+int ballX = 0;
+int ballY = 0;
+bool ballLaunched = false;
+
+int dx = 0;
+int dy = 0;
 
 bool loadLevel() {
 
@@ -68,6 +79,14 @@ void drawPaddle(sf::RenderWindow& window) {
 	window.draw(paddle);
 }
 
+void drawBall(sf::RenderWindow& window) {
+
+	sf::CircleShape ball(Ball_Size / 2);
+	ball.setFillColor(sf::Color::White);
+	ball.setPosition({ (float)ballX, (float)ballY });
+	window.draw(ball);
+}
+
 
 void handleInput(sf::RenderWindow& window) {
 
@@ -75,6 +94,18 @@ void handleInput(sf::RenderWindow& window) {
 
 		if (event->is<sf::Event::Closed>()) {
 			window.close();
+		}
+		else if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+		{
+			if (key->code == sf::Keyboard::Key::Space && !ballLaunched)
+			{
+				ballLaunched = true;
+				dy = -5;
+				if (rand() % 2 == 0)
+					dx = 3;
+				else
+					dx = -3;
+			}
 		}
 	}
 
@@ -92,7 +123,17 @@ void handleInput(sf::RenderWindow& window) {
 
 void updateGame() {
 
-	// Update game logic here
+	if (!ballLaunched)
+	{
+		ballX = PaddleX + 44;
+		ballY = 638;
+	}
+	else
+	{
+		ballX = ballX + dx;
+		ballY = ballY + dy;
+	}
+	
 }
 
 void drawGame(sf::RenderWindow& window) {
@@ -100,6 +141,7 @@ void drawGame(sf::RenderWindow& window) {
 	window.clear();
 	drawBricks(window);
 	drawPaddle(window);
+	drawBall(window);
 	window.display();
 }
 
@@ -107,6 +149,8 @@ int main() {
 
 	sf::RenderWindow window(sf::VideoMode({ Window_W, Window_H }), "Block Buster");
 	window.setFramerateLimit(60);
+
+	srand((unsigned)time(0));
 
 	if (!loadLevel())
 	{
