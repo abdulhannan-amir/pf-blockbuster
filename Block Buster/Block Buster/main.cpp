@@ -8,6 +8,7 @@ using namespace std;
 const int ROWS = 8;
 const int COLS = 10;
 int bricks[ROWS][COLS];
+bool touched[ROWS][COLS];
 
 const int Window_W = 600;
 const int Window_H = 700;
@@ -29,6 +30,11 @@ bool ballLaunched = false;
 int dx = 0;
 int dy = 0;
 const int Hud_H = 50;
+
+int score = 0;
+const int Points_Hit = 10;
+const int Points_Break = 50;
+
 
 bool loadLevel() {
 
@@ -145,6 +151,44 @@ void bounceOnPaddle()
 	}
 }
 
+void markBrickAt(int x, int y)
+{
+	if (x < 0 || x >= Window_W || y < (int)Brick_Y || y >= (int)Brick_Y + ROWS * (int)Brick_H)
+		return;
+
+	int c = x / (int)Brick_W;
+	int r = (y - (int)Brick_Y) / (int)Brick_H;
+
+	if (bricks[r][c] > 0)
+		touched[r][c] = true;
+}
+
+bool hitBricks()
+{
+	for (int r = 0; r < ROWS; r++)
+		for (int c = 0; c < COLS; c++)
+			touched[r][c] = false;
+
+	int last = (int)Ball_Size - 1;
+
+	markBrickAt(ballX, ballY);
+	markBrickAt(ballX + last, ballY);
+	markBrickAt(ballX, ballY + last);
+	markBrickAt(ballX + last, ballY + last);
+
+	bool hit = false;
+	for (int r = 0; r < ROWS; r++)
+		for (int c = 0; c < COLS; c++)
+			if (touched[r][c])
+			{
+				bricks[r][c]--;
+				hit = true;
+			}
+
+	return hit;
+}
+
+
 void updateGame() {
 
 	if (!ballLaunched)
@@ -155,14 +199,24 @@ void updateGame() {
 	else
 	{
 		ballX = ballX + dx;
-		if (ballX < 0 || ballX + (int)Ball_Size > Window_W) 
+		if (ballX < 0 || ballX + (int)Ball_Size > Window_W)
+		{
+			ballX = ballX - dx;
+			dx = -dx;
+		}
+		else if (hitBricks())
 		{
 			ballX = ballX - dx;
 			dx = -dx;
 		}
 
 		ballY = ballY + dy;
-		if(ballY < Hud_H)
+		if (ballY < Hud_H)
+		{
+			ballY = ballY - dy;
+			dy = -dy;
+		}
+		else if (hitBricks())
 		{
 			ballY = ballY - dy;
 			dy = -dy;
@@ -171,9 +225,7 @@ void updateGame() {
 		bounceOnPaddle();
 
 		if (ballY > 700)
-		{
 			ballLaunched = false;
-		}
 	}
 	
 }
@@ -190,7 +242,7 @@ void drawGame(sf::RenderWindow& window) {
 int main() {
 
 	sf::RenderWindow window(sf::VideoMode({ Window_W, Window_H }), "Block Buster");
-	window.setFramerateLimit(60);
+	window.setFramerateLimit(120);
 
 	srand((unsigned)time(0));
 
