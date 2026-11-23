@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <string>
 using namespace std;
 
 const int ROWS = 8;
@@ -34,6 +35,10 @@ const int Hud_H = 50;
 int score = 0;
 const int Points_Hit = 10;
 const int Points_Break = 50;
+
+const int Start_Lives = 3;
+int lives = Start_Lives;
+sf::Font font;
 
 
 bool loadLevel() {
@@ -86,6 +91,19 @@ void drawPaddle(sf::RenderWindow& window) {
 	window.draw(paddle);
 }
 
+void drawHud(sf::RenderWindow& window)
+{
+	sf::Text scoreText(font, "Score: " + to_string(score), 22);
+	scoreText.setFillColor(sf::Color::White);
+	scoreText.setPosition({ 20.f, 10.f });
+	window.draw(scoreText);
+
+	sf::Text livesText(font, "Lives: " + to_string(lives), 22);
+	livesText.setFillColor(sf::Color::White);
+	livesText.setPosition({ 460.f, 10.f });
+	window.draw(livesText);
+}
+
 void drawBall(sf::RenderWindow& window) {
 
 	sf::CircleShape ball(Ball_Size / 2);
@@ -93,7 +111,6 @@ void drawBall(sf::RenderWindow& window) {
 	ball.setPosition({ (float)ballX, (float)ballY });
 	window.draw(ball);
 }
-
 
 void handleInput(sf::RenderWindow& window) {
 
@@ -182,6 +199,12 @@ bool hitBricks()
 			if (touched[r][c])
 			{
 				bricks[r][c]--;
+
+				if (bricks[r][c] == 0)
+					score += Points_Break;
+				else
+					score += Points_Hit;
+
 				hit = true;
 			}
 
@@ -225,7 +248,13 @@ void updateGame() {
 		bounceOnPaddle();
 
 		if (ballY > 700)
+		{
+			lives--;
 			ballLaunched = false;
+
+			if (lives == 0)
+				cout << "GAME OVER" << endl;
+		}
 	}
 	
 }
@@ -236,13 +265,20 @@ void drawGame(sf::RenderWindow& window) {
 	drawBricks(window);
 	drawPaddle(window);
 	drawBall(window);
+	drawHud(window);
 	window.display();
 }
 
 int main() {
 
 	sf::RenderWindow window(sf::VideoMode({ Window_W, Window_H }), "Block Buster");
-	window.setFramerateLimit(120);
+	window.setFramerateLimit(60);
+
+	if (!font.openFromFile("C:/Windows/Fonts/arial.ttf"))
+	{
+		cout << "font not found" << endl;
+		return 1;
+	}
 
 	srand((unsigned)time(0));
 
