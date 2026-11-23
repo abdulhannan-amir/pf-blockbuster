@@ -28,6 +28,7 @@ bool ballLaunched = false;
 
 int dx = 0;
 int dy = 0;
+const int Hud_H = 50;
 
 bool loadLevel() {
 
@@ -121,6 +122,29 @@ void handleInput(sf::RenderWindow& window) {
 		PaddleX = Window_W - (int)Paddle_W;
 }
 
+void bounceOnPaddle()
+{
+	bool touching = ballX < PaddleX + (int)Paddle_W &&
+		ballX + (int)Ball_Size > PaddleX &&
+		ballY < (int)Paddle_Y + (int)Paddle_H &&
+		ballY + (int)Ball_Size >(int)Paddle_Y;
+
+	if (touching && dy > 0)
+	{
+		ballY = 638;
+		dy = -5;
+
+		int centre = ballX + (int)Ball_Size / 2;
+		int part = (centre - PaddleX) / ((int)Paddle_W / 4);
+
+		if (part < 0) part = 0;
+		if (part > 3) part = 3;
+
+		int speeds[4] = { -6, -3, 3, 6 };
+		dx = speeds[part];
+	}
+}
+
 void updateGame() {
 
 	if (!ballLaunched)
@@ -131,7 +155,25 @@ void updateGame() {
 	else
 	{
 		ballX = ballX + dx;
+		if (ballX < 0 || ballX + (int)Ball_Size > Window_W) 
+		{
+			ballX = ballX - dx;
+			dx = -dx;
+		}
+
 		ballY = ballY + dy;
+		if(ballY < Hud_H)
+		{
+			ballY = ballY - dy;
+			dy = -dy;
+		}
+
+		bounceOnPaddle();
+
+		if (ballY > 700)
+		{
+			ballLaunched = false;
+		}
 	}
 	
 }
