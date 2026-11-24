@@ -40,6 +40,10 @@ const int Start_Lives = 3;
 int lives = Start_Lives;
 sf::Font font;
 
+const int MENU = 0, PLAYING = 1, GAME_OVER = 2;
+int gameState = MENU;
+int menuChoice = 0;
+
 
 bool loadLevel() {
 
@@ -104,6 +108,14 @@ void drawHud(sf::RenderWindow& window)
 	window.draw(livesText);
 }
 
+void drawText(sf::RenderWindow& window, string msg, float x, float y, int size, sf::Color color)
+{
+	sf::Text text(font, msg, size);
+	text.setFillColor(color);
+	text.setPosition({ x, y });
+	window.draw(text);
+}
+
 void drawBall(sf::RenderWindow& window) {
 
 	sf::CircleShape ball(Ball_Size / 2);
@@ -112,37 +124,76 @@ void drawBall(sf::RenderWindow& window) {
 	window.draw(ball);
 }
 
+void drawMenu(sf::RenderWindow& window)
+{
+	drawText(window, "BLOCK BUSTER", 150, 150, 40, sf::Color::White);
+
+	string options[3] = { "New Game", "Continue", "Exit" };
+	for (int i = 0; i < 3; i++)
+	{
+		sf::Color color = sf::Color::White;
+		if (i == menuChoice)
+			color = sf::Color::Yellow;
+		drawText(window, options[i], 220, 300 + i * 60, 28, color);
+	}
+}
+
 void handleInput(sf::RenderWindow& window) {
 
-	while (const std::optional event = window.pollEvent()){
+	while (const std::optional event = window.pollEvent()) {
 
 		if (event->is<sf::Event::Closed>()) {
 			window.close();
 		}
 		else if (const auto* key = event->getIf<sf::Event::KeyPressed>())
 		{
-			if (key->code == sf::Keyboard::Key::Space && !ballLaunched)
+			if (gameState == MENU)
 			{
-				ballLaunched = true;
-				dy = -5;
-				if (rand() % 2 == 0)
-					dx = 3;
-				else
-					dx = -3;
+				if (key->code == sf::Keyboard::Key::Down && menuChoice < 2)
+					menuChoice++;
+
+				if (key->code == sf::Keyboard::Key::Up && menuChoice > 0)
+					menuChoice--;
+
+				if (key->code == sf::Keyboard::Key::Enter)
+				{
+					if (menuChoice == 0)
+						gameState = PLAYING;
+					else if (menuChoice == 2)
+						window.close();
+				}
+			}
+			else if (gameState == PLAYING)
+			{
+				if (key->code == sf::Keyboard::Key::Space && !ballLaunched)
+				{
+					ballLaunched = true;
+					dy = -5;
+					if (rand() % 2 == 0)
+						dx = 3;
+					else
+						dx = -3;
+				}
 			}
 		}
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-		PaddleX = PaddleX - 8;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-		PaddleX = PaddleX + 8;
+	if (gameState == PLAYING)
+	{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
+			sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+			PaddleX = PaddleX - 8;
 
-	if (PaddleX < 0)
-		PaddleX = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) ||
+			sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+			PaddleX = PaddleX + 8;
 
-	if (PaddleX + (int)Paddle_W > Window_W)
-		PaddleX = Window_W - (int)Paddle_W;
+		if (PaddleX < 0)
+			PaddleX = 0;
+
+		if (PaddleX + (int)Paddle_W > Window_W)
+			PaddleX = Window_W - (int)Paddle_W;
+	}
 }
 
 void bounceOnPaddle()
@@ -214,6 +265,9 @@ bool hitBricks()
 
 void updateGame() {
 
+	if (gameState != PLAYING)
+		return;
+
 	if (!ballLaunched)
 	{
 		ballX = PaddleX + 44;
@@ -262,10 +316,22 @@ void updateGame() {
 void drawGame(sf::RenderWindow& window) {
 
 	window.clear();
-	drawBricks(window);
-	drawPaddle(window);
-	drawBall(window);
-	drawHud(window);
+
+	switch (gameState)
+	{
+	case MENU:
+		drawMenu(window);
+		break;
+	case PLAYING:
+		drawBricks(window);
+		drawPaddle(window);
+		drawBall(window);
+		drawHud(window);
+		break;
+	case GAME_OVER:
+		break;
+	}
+
 	window.display();
 }
 
