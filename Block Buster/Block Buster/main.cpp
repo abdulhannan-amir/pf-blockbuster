@@ -43,6 +43,8 @@ sf::Font font;
 const int MENU = 0, PLAYING = 1, GAME_OVER = 2;
 int gameState = MENU;
 int menuChoice = 0;
+bool won = false;
+bool noSave = false;
 
 
 bool loadLevel() {
@@ -136,6 +138,60 @@ void drawMenu(sf::RenderWindow& window)
 			color = sf::Color::Yellow;
 		drawText(window, options[i], 220, 300 + i * 60, 28, color);
 	}
+	if (noSave)
+		drawText(window, "No saved game", 210, 500, 24, sf::Color::Red);
+}
+
+void startNewGame()
+{
+	score = 0;
+	lives = Start_Lives;
+	loadLevel();
+	PaddleX = 250;
+	ballLaunched = false;
+	won = false;
+}
+
+void saveGame()
+{
+	ofstream fout("savegame.txt");
+
+	fout << score << " " << lives << endl;
+
+	for (int r = 0; r < ROWS; r++)
+	{
+		for (int c = 0; c < COLS; c++)
+			fout << bricks[r][c] << " ";
+		fout << endl;
+	}
+}
+
+bool loadGame()
+{
+	ifstream fin("savegame.txt");
+	if (!fin)
+		return false;
+
+	int s, l;
+	if (!(fin >> s >> l))
+		return false;
+
+	score = s;
+	lives = l;
+
+	for (int r = 0; r < ROWS; r++)
+		for (int c = 0; c < COLS; c++)
+			fin >> bricks[r][c];
+
+	PaddleX = 250;
+	ballLaunched = false;
+	won = false;
+	return true;
+}
+
+void clearSave()
+{
+	ofstream fout("savegame.txt");
 }
 
 void handleInput(sf::RenderWindow& window) {
@@ -149,16 +205,30 @@ void handleInput(sf::RenderWindow& window) {
 		{
 			if (gameState == MENU)
 			{
-				if (key->code == sf::Keyboard::Key::Down && menuChoice < 2)
+				if (key->code == sf::Keyboard::Key::Down && menuChoice < 2) {
 					menuChoice++;
+					noSave = false;
+				}
 
-				if (key->code == sf::Keyboard::Key::Up && menuChoice > 0)
+				if (key->code == sf::Keyboard::Key::Up && menuChoice > 0) {
 					menuChoice--;
+					noSave = false;
+				}
 
 				if (key->code == sf::Keyboard::Key::Enter)
 				{
 					if (menuChoice == 0)
+					{
+						startNewGame();
 						gameState = PLAYING;
+					}
+					else if (menuChoice == 1)
+					{
+						if (loadGame())
+							gameState = PLAYING;
+						else
+							noSave = true;
+					}
 					else if (menuChoice == 2)
 						window.close();
 				}
@@ -174,6 +244,16 @@ void handleInput(sf::RenderWindow& window) {
 					else
 						dx = -3;
 				}
+				if (key->code == sf::Keyboard::Key::Escape)
+				{
+					saveGame();
+					gameState = MENU;
+				}
+			}
+			else if (gameState == GAME_OVER)
+			{
+				if (key->code == sf::Keyboard::Key::Enter)
+					gameState = MENU;
 			}
 		}
 	}
@@ -262,6 +342,15 @@ bool hitBricks()
 	return hit;
 }
 
+int countBricks()
+{
+	int count = 0;
+	for (int r = 0; r < ROWS; r++)
+		for (int c = 0; c < COLS; c++)
+			if (bricks[r][c] > 0)
+				count++;
+	return count;
+}
 
 void updateGame() {
 
@@ -307,7 +396,18 @@ void updateGame() {
 			ballLaunched = false;
 
 			if (lives == 0)
-				cout << "GAME OVER" << endl;
+			{
+				won = false;
+				clearSave();
+				gameState = GAME_OVER;
+			}
+		}
+
+		if (countBricks() == 0)
+		{
+			won = true;
+			clearSave();
+			gameState = GAME_OVER;
 		}
 	}
 	
@@ -329,6 +429,13 @@ void drawGame(sf::RenderWindow& window) {
 		drawHud(window);
 		break;
 	case GAME_OVER:
+		if (won)
+			drawText(window, "YOU WIN", 200, 250, 48, sf::Color::Green);
+		else
+			drawText(window, "GAME OVER", 170, 250, 48, sf::Color::Red);
+
+		drawText(window, "Final Score: " + to_string(score), 190, 340, 28, sf::Color::White);
+		drawText(window, "Press Enter", 220, 400, 28, sf::Color::Yellow);
 		break;
 	}
 
