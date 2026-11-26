@@ -50,7 +50,7 @@ Fall 2026 Semester Project.
 
 
 
-\## Screenshot
+## Screenshot
 
-!\[Block Buster](screenshot.png)
+![Block Buster](screenshot.png)
 
