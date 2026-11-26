@@ -21,9 +21,15 @@ const float Brick_Y = 100.f;
 const float Paddle_W = 100.f;
 const float Paddle_H = 14.f;
 const float	Paddle_Y = 650.f;
-int  PaddleX = 250;
+const int Paddle_Start_X = 250;
+const int Paddle_Speed = 8;
+int  PaddleX = Paddle_Start_X;
 
 const float Ball_Size = 12.f;
+const int Ball_Offset_X = 44;
+const int Ball_Start_Y = 638;
+const int Ball_Speed_Y = 5;
+const int Ball_Speed_X = 3;
 int ballX = 0;
 int ballY = 0;
 bool ballLaunched = false;
@@ -148,7 +154,7 @@ void startNewGame()
 	score = 0;
 	lives = Start_Lives;
 	loadLevel();
-	PaddleX = 250;
+	PaddleX = Paddle_Start_X;
 	ballLaunched = false;
 	won = false;
 }
@@ -184,7 +190,7 @@ bool loadGame()
 		for (int c = 0; c < COLS; c++)
 			fin >> bricks[r][c];
 
-	PaddleX = 250;
+	PaddleX = Paddle_Start_X;
 	ballLaunched = false;
 	won = false;
 	return true;
@@ -239,11 +245,11 @@ void handleInput(sf::RenderWindow& window) {
 				if (key->code == sf::Keyboard::Key::Space && !ballLaunched)
 				{
 					ballLaunched = true;
-					dy = -5;
+					dy = -Ball_Speed_Y;
 					if (rand() % 2 == 0)
-						dx = 3;
+						dx = Ball_Speed_X;
 					else
-						dx = -3;
+						dx = -Ball_Speed_X;
 				}
 				if (key->code == sf::Keyboard::Key::Escape)
 				{
@@ -263,11 +269,11 @@ void handleInput(sf::RenderWindow& window) {
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) ||
 			sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-			PaddleX = PaddleX - 8;
+			PaddleX = PaddleX - Paddle_Speed;
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) ||
 			sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-			PaddleX = PaddleX + 8;
+			PaddleX = PaddleX + Paddle_Speed;
 
 		if (PaddleX < 0)
 			PaddleX = 0;
@@ -286,8 +292,8 @@ void bounceOnPaddle()
 
 	if (touching && dy > 0)
 	{
-		ballY = 638;
-		dy = -5;
+		ballY = Ball_Start_Y;
+		dy = -Ball_Speed_Y;
 
 		int centre = ballX + (int)Ball_Size / 2;
 		int part = (centre - PaddleX) / ((int)Paddle_W / 4);
@@ -362,8 +368,8 @@ void updateGame() {
 
 	if (!ballLaunched)
 	{
-		ballX = PaddleX + 44;
-		ballY = 638;
+		ballX = PaddleX + Ball_Offset_X;
+		ballY = Ball_Start_Y;
 	}
 	else
 	{
@@ -393,7 +399,7 @@ void updateGame() {
 
 		bounceOnPaddle();
 
-		if (ballY > 700)
+		if (ballY > Window_H)
 		{
 			lives--;
 			ballLaunched = false;
