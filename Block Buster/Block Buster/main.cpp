@@ -53,7 +53,10 @@ bool won = false;
 bool noSave = false;
 bool levelMissing = false;
 
-
+// Reads level.txt into the bricks table.
+// The first line (rows and columns) is read and skipped.
+// Then every brick number is read row by row with two nested loops.
+// Returns false if the file is missing, so the game can show an error.
 bool loadLevel() {
 
 	ifstream fin("level.txt");
@@ -159,6 +162,8 @@ void startNewGame()
 	won = false;
 }
 
+// Writes the current game to savegame.txt.
+// Line 1: score and lives. Next 8 lines: the bricks table, one row per line.
 void saveGame()
 {
 	ofstream fout("savegame.txt");
@@ -173,6 +178,9 @@ void saveGame()
 	}
 }
 
+// Reads savegame.txt: score and lives on the first line, then the bricks table.
+// Returns false if the file is missing or empty (no saved game).
+// The paddle and ball are not saved, so they start at their default place.
 bool loadGame()
 {
 	ifstream fin("savegame.txt");
@@ -196,6 +204,8 @@ bool loadGame()
 	return true;
 }
 
+// Opening the file for writing and closing it at once makes it empty,
+// so a finished game cannot be continued.
 void clearSave()
 {
 	ofstream fout("savegame.txt");
@@ -283,6 +293,10 @@ void handleInput(sf::RenderWindow& window) {
 	}
 }
 
+// The ball bounces only while moving down (dy > 0) and when its box
+// touches the paddle box. The paddle is split into 4 equal parts, and the
+// part under the ball's centre decides the new dx: far left parts send the
+// ball left, far right parts send it right. This is how the player aims.
 void bounceOnPaddle()
 {
 	bool touching = ballX < PaddleX + (int)Paddle_W &&
@@ -306,6 +320,11 @@ void bounceOnPaddle()
 	}
 }
 
+// Finds the brick under the point (x, y) with one division per direction:
+// column = x / brick width, row = (y - top of bricks) / brick height.
+// Points outside the brick area are ignored to avoid a wrong row or column.
+// The brick is only marked here, not damaged, so one brick under two
+// corners of the ball loses only one hit.
 void markBrickAt(int x, int y)
 {
 	if (x < 0 || x >= Window_W || y < (int)Brick_Y || y >= (int)Brick_Y + ROWS * (int)Brick_H)
@@ -318,6 +337,9 @@ void markBrickAt(int x, int y)
 		touched[r][c] = true;
 }
 
+// Checks the four corners of the ball. Every marked brick loses one hit.
+// A hit gives 10 points, and the hit that breaks the brick gives 50.
+// Returns true if any brick was hit.
 bool hitBricks()
 {
 	for (int r = 0; r < ROWS; r++)
@@ -371,6 +393,9 @@ void updateGame() {
 		ballX = PaddleX + Ball_Offset_X;
 		ballY = Ball_Start_Y;
 	}
+
+	// Move in two steps: first x, then y. After each step, if the ball
+	// went into a wall or a brick, undo that step and reverse that speed.
 	else
 	{
 		ballX = ballX + dx;
