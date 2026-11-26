@@ -53,6 +53,7 @@ bool won = false;
 bool noSave = false;
 bool levelMissing = false;
 
+
 // Reads level.txt into the bricks table.
 // The first line (rows and columns) is read and skipped.
 // Then every brick number is read row by row with two nested loops.
