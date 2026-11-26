@@ -45,6 +45,7 @@ int gameState = MENU;
 int menuChoice = 0;
 bool won = false;
 bool noSave = false;
+bool levelMissing = false;
 
 
 bool loadLevel() {
@@ -354,6 +355,8 @@ int countBricks()
 
 void updateGame() {
 
+	if (levelMissing)
+		return;
 	if (gameState != PLAYING)
 		return;
 
@@ -416,6 +419,12 @@ void updateGame() {
 void drawGame(sf::RenderWindow& window) {
 
 	window.clear();
+	if (levelMissing)
+	{
+		drawText(window, "ERROR: level.txt not found", 80, 320, 28, sf::Color::Red);
+		window.display();
+		return;
+	}
 
 	switch (gameState)
 	{
@@ -456,10 +465,7 @@ int main() {
 	srand((unsigned)time(0));
 
 	if (!loadLevel())
-	{
-		cout << "level.txt not found" << endl;
-		return 1;
-	}
+		levelMissing = true;
 
 
 	while (window.isOpen()) {
