@@ -85,6 +85,8 @@ void drawBricks(sf::RenderWindow& window)
 	};
 
 	sf::RectangleShape brick({ Brick_W - 2, Brick_H - 2 });
+	brick.setOutlineThickness(-1.f);
+	brick.setOutlineColor(sf::Color(0, 0, 0, 120));
 
 	for (int r = 0; r < ROWS; r++)
 	{
@@ -110,6 +112,10 @@ void drawPaddle(sf::RenderWindow& window) {
 
 void drawHud(sf::RenderWindow& window)
 {
+	sf::RectangleShape strip({ (float)Window_W, (float)Hud_H });
+	strip.setFillColor(sf::Color(30, 30, 70));
+	window.draw(strip);
+
 	sf::Text scoreText(font, "Score: " + to_string(score), 22);
 	scoreText.setFillColor(sf::Color::White);
 	scoreText.setPosition({ 20.f, 10.f });
@@ -129,6 +135,15 @@ void drawText(sf::RenderWindow& window, string msg, float x, float y, int size, 
 	window.draw(text);
 }
 
+void drawCenteredText(sf::RenderWindow& window, string msg, float y, int size, sf::Color color)
+{
+	sf::Text text(font, msg, size);
+	text.setFillColor(color);
+	sf::FloatRect box = text.getLocalBounds();
+	text.setPosition({ (Window_W - box.size.x) / 2.f - box.position.x, y });
+	window.draw(text);
+}
+
 void drawBall(sf::RenderWindow& window) {
 
 	sf::CircleShape ball(Ball_Size / 2);
@@ -139,20 +154,32 @@ void drawBall(sf::RenderWindow& window) {
 
 void drawMenu(sf::RenderWindow& window)
 {
-	drawText(window, "BLOCK BUSTER", 150, 150, 40, sf::Color::White);
+	drawCenteredText(window, "BLOCK BUSTER", 120, 52, sf::Color(255, 200, 0));
+	drawCenteredText(window, "Break all the bricks!", 190, 20, sf::Color(150, 150, 180));
 
 	string options[3] = { "New Game", "Continue", "Exit" };
 	for (int i = 0; i < 3; i++)
 	{
-		sf::Color color = sf::Color::White;
+		float y = 300.f + i * 70;
 		if (i == menuChoice)
-			color = sf::Color::Yellow;
-		drawText(window, options[i], 220, 300 + i * 60, 28, color);
+		{
+			sf::RectangleShape bar({ 260.f, 50.f });
+			bar.setFillColor(sf::Color(40, 40, 90));
+			bar.setOutlineThickness(2.f);
+			bar.setOutlineColor(sf::Color(255, 200, 0));
+			bar.setPosition({ (Window_W - 260) / 2.f, y - 6.f });
+			window.draw(bar);
+			drawCenteredText(window, options[i], y, 28, sf::Color(255, 200, 0));
+		}
+		else
+			drawCenteredText(window, options[i], y, 28, sf::Color::White);
 	}
-	if (noSave)
-		drawText(window, "No saved game", 210, 500, 24, sf::Color::Red);
-}
 
+	if (noSave)
+		drawCenteredText(window, "No saved game", 540, 22, sf::Color::Red);
+
+	drawCenteredText(window, "Up / Down + Enter", 650, 18, sf::Color(120, 120, 150));
+}
 void startNewGame()
 {
 	score = 0;
@@ -450,7 +477,7 @@ void updateGame() {
 
 void drawGame(sf::RenderWindow& window) {
 
-	window.clear();
+	window.clear(sf::Color(15, 15, 35));
 	if (levelMissing)
 	{
 		drawText(window, "ERROR: level.txt not found", 80, 320, 28, sf::Color::Red);
@@ -470,13 +497,18 @@ void drawGame(sf::RenderWindow& window) {
 		drawHud(window);
 		break;
 	case GAME_OVER:
-		if (won)
-			drawText(window, "YOU WIN", 200, 250, 48, sf::Color::Green);
-		else
-			drawText(window, "GAME OVER", 170, 250, 48, sf::Color::Red);
+		sf::Color accent = won ? sf::Color(60, 220, 100) : sf::Color(230, 60, 60);
 
-		drawText(window, "Final Score: " + to_string(score), 190, 340, 28, sf::Color::White);
-		drawText(window, "Press Enter", 220, 400, 28, sf::Color::Yellow);
+		sf::RectangleShape box({ 420.f, 300.f });
+		box.setFillColor(sf::Color(30, 30, 70));
+		box.setOutlineThickness(3.f);
+		box.setOutlineColor(accent);
+		box.setPosition({ (Window_W - 420) / 2.f, 200.f });
+		window.draw(box);
+
+		drawCenteredText(window, won ? "YOU WIN" : "GAME OVER", 240, 52, accent);
+		drawCenteredText(window, "Final Score: " + to_string(score), 340, 30, sf::Color::White);
+		drawCenteredText(window, "Press Enter", 420, 24, sf::Color(255, 200, 0));
 		break;
 	}
 
